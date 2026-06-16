@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário de Livro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light py-5">
+
+    <div class="container" style="max-width: 600px;">
+        <div class="card p-4 shadow-sm border-0" style="border-radius: 12px;">
+            <h3 class="fw-bold text-primary mb-3">
+                {% if livro %} 📝 Editar Dados do Livro {% else %} ➕ Adicionar Novo Livro {% endif %}
+            </h3>
+            <hr class="text-muted">
+
+            <form action="{{ url_for('salvar_livro') }}" method="POST">
+                <input type="hidden" name="id" value="{{ livro.id if livro else '' }}">
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-secondary">Título do Livro</label>
+                    <input type="text" name="titulo" class="form-control" value="{{ livro.titulo if livro else '' }}" placeholder="Ex: Dom Casmurro" required style="border-radius: 8px;">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-secondary">Autor</label>
+                    <input type="text" name="autor" class="form-control" value="{{ livro.autor if livro else '' }}" placeholder="Ex: Machado de Assis" required style="border-radius: 8px;">
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold text-secondary">Ano de Publicação</label>
+                    <input type="number" name="ano" class="form-control" value="{{ livro.ano if livro else '' }}" placeholder="Ex: 1899" required style="border-radius: 8px;">
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary fw-bold px-4" style="border-radius: 8px;">Salvar Informações</button>
+                    <a href="{{ url_for('listar_livros') }}" class="btn btn-outline-secondary px-4" style="border-radius: 8px;">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>
