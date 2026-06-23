@@ -1,49 +1,76 @@
 from flask import render_template, request, redirect, url_for, session as flask_session
+from flask import jsonify
+from sqlalchemy import func
 from main import app 
 from models.Geral import Session
 from models.Usuario import Usuario
 from models.Livro import Livro
 
-# ================= ROTA DE LOGIN =================
+# ================= ROTA DE LOGIN (PÁGINA INICIAL) =================
 @app.route("/", methods=["GET", "POST"])
 def login():
+    # Se o usuário já estiver logado, manda direto para o Dashboard
+    if "usuario_logado" in flask_session:
+        return redirect(url_for("exibir_dashboard"))
+
     if request.method == "POST":
         db_session = Session()
         try:
             txt_login = request.form.get("login")
             txt_senha = request.form.get("senha")
             
-            # Procura o usuário no banco do XAMPP
             usuario = db_session.query(Usuario).filter(Usuario.login == txt_login, Usuario.senha == txt_senha).first()
             
             if usuario:
-                flask_session["usuario_logado"] = usuario.nome # Salva na sessão da página
-                return redirect(url_for("listar_livros"))
+                flask_session["usuario_logado"] = usuario.nome 
+                # MUDANÇA AQUI: Agora, ao logar, vai direto para o Dashboard!
+                return redirect(url_for("exibir_dashboard"))
             else:
                 return render_template("login.html", erro="Usuário ou senha inválidos!")
         finally:
-            db_session.close() # FECHA A CONEXÃO
+            db_session.close() 
             
     return render_template("login.html", erro=None)
 
 @app.route("/logout")
 def logout():
-    flask_session.pop("usuario_logado", None) # Limpa o login
+    flask_session.pop("usuario_logado", None) 
     return redirect(url_for("login"))
 
 
-# ================= CRUD DE LIVROS (SÓ ENTRA SE LOGADO) =================
+# ================= DASHBOARD DO SISTEMA =================
+@app.route("/dashboard")
+def exibir_dashboard():
+    if "usuario_logado" not in flask_session:
+        return redirect(url_for("login"))
+        
+    db_session = Session()
+    try:
+        total_livros = db_session.query(func.count(Livro.id)).scalar()
+        total_usuarios = db_session.query(func.count(Usuario.id)).scalar()
+        
+        return render_template(
+            "dashboard.html", 
+            total_livros=total_livros, 
+            total_usuarios=total_usuarios, 
+            nome_usuario=flask_session["usuario_logado"]
+        )
+    finally:
+        db_session.close()
+
+
+# ================= CRUD DE LIVROS =================
 @app.route("/livros")
 def listar_livros():
     if "usuario_logado" not in flask_session:
-        return redirect(url_for("login")) # Expulsa se não estiver logado
+        return redirect(url_for("login")) 
         
     db_session = Session()
     try:
         lista = db_session.query(Livro).all()
         return render_template("livros/lista.html", todos_os_livros=lista, nome_usuario=flask_session["usuario_logado"])
     finally:
-        db_session.close() # FECHA A CONEXÃO
+        db_session.close() 
 
 @app.route("/livros/novo")
 def novo_livro():
@@ -72,7 +99,7 @@ def salvar_livro():
         db_session.commit() 
         return redirect(url_for("listar_livros"))
     finally:
-        db_session.close() # FECHA A CONEXÃO
+        db_session.close() 
 
 @app.route("/livros/editar/<int:id>")
 def editar_livro(id):
@@ -82,7 +109,7 @@ def editar_livro(id):
         livro = db_session.query(Livro).filter(Livro.id == id).first()
         return render_template("livros/formulario.html", livro=livro)
     finally:
-        db_session.close() # FECHA A CONEXÃO
+        db_session.close() 
 
 @app.route("/livros/deletar/<int:id>")
 def deletar_livro(id):
@@ -94,14 +121,14 @@ def deletar_livro(id):
         db_session.commit()
         return redirect(url_for("listar_livros"))
     finally:
-        db_session.close() # FECHA A CONEXÃO
+        db_session.close() 
 
-# ROTA PARA ABRIR A TELA DE CADASTRO DE USUÁRIO
+
+# ================= TELA DE CADASTRO DE USUÁRIO =================
 @app.route("/registrar")
 def novo_usuario_externo():
     return render_template("cadastro_usuario.html")
 
-# ROTA PARA SALVAR O NOVO USUÁRIO NO BANCO DO XAMPP
 @app.route("/registrar/salvar", methods=["POST"])
 def salvar_usuario_externo():
     db_session = Session()
@@ -110,17 +137,16 @@ def salvar_usuario_externo():
         login = request.form.get("login")
         senha = request.form.get("senha")
         
-        # Cria o usuário e manda pro MySQL
         novo_usuario = Usuario(nome=nome, login=login, senha=senha)
         db_session.add(novo_usuario)
         db_session.commit()
         
-        # Redireciona de volta para o login para ele estrear a conta!
         return redirect(url_for("login"))
     finally:
-        db_session.close() # FECHA A CONEXÃO
+        db_session.close() 
 
-from flask import jsonify
+
+# ================= ENDPOINT DO AUTOR (API) =================
 @app.route("/autor")
 def endpoint_autor():
     dados_autor = {

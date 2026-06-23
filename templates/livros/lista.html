@@ -10,7 +10,7 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
         <div class="container">
-            <span class="navbar-brand fw-bold text-primary">📚 Sistema Biblioteca</span>
+            <span class="navbar-brand fw-bold text-primary">📚+BiblioTech</span>
             <div class="ms-auto text-light small">
                 Olá, <span class="fw-bold text-warning">{{ nome_usuario }}</span> | 
                 <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-danger ms-2">Sair</a>
@@ -22,9 +22,14 @@
         <div class="card p-4 shadow-sm border-0" style="border-radius: 12px;">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3 class="fw-bold text-secondary mb-0">Livros Cadastrados</h3>
-                <a href="{{ url_for('novo_book') if 'novo_book' in text else url_for('novo_livro') }}" class="btn btn-primary fw-bold shadow-sm" style="border-radius: 8px;">
-                    ➕ Novo Livro
-                </a>
+                <div>
+                    <a href="{{ url_for('exibir_dashboard') }}" class="btn btn-outline-secondary fw-bold shadow-sm me-2" style="border-radius: 8px;">
+                        📊 Voltar ao Dashboard
+                    </a>
+                    <a href="{{ url_for('novo_livro') }}" class="btn btn-primary fw-bold shadow-sm" style="border-radius: 8px;">
+                        ➕ Novo Livro
+                    </a>
+                </div>
             </div>
 
             <div class="table-responsive">
